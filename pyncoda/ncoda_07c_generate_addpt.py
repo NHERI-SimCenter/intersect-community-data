@@ -161,6 +161,20 @@ class generate_addpt_functions():
             # create output folders for hui data generation
             outputfolders = directory_design(state_county_name = community,
                                                 outputfolder = self.outputfolder)
+            
+            # Check if State FIPS code matches state name
+            # State FIPS code is the first two digits of the county FIPS code
+            state_fips = state_county[:2]
+            state_name_check = check_state_name(state_fips = state_fips)
+            # for URL state name is all caps and has _ for spaces
+            state_name_check_allcaps = state_name_check.upper().replace(" ","_")
+            if state_caps != state_name_check_allcaps:
+                print(f"State Name {state_caps} does not match State FIPS Code {state_fips}")
+                # update state name
+                print(f"Updating State Name to {state_name_check_allcaps}")
+                state_caps = state_name_check_allcaps
+            else:
+                print(f"State Name {state_caps} matches State FIPS Code {state_fips}")
 
             output_folder = outputfolders['CommunitySourceData']
             # Read in Census Block PUMA Place Data
