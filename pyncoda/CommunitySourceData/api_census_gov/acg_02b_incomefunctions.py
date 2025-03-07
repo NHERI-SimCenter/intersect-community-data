@@ -107,24 +107,33 @@ def add_poverty(input_df, year: str = '2010'):
     The year is for the base inventory - which is for the decennial census year.
     """
 
+    # check data type for year
+    if year not in ['2010', '2020']:
+        raise ValueError(f"Year must be 2010 or 2020. Year entered: {year}")
+    
     output_df = input_df.copy()
 
-    if year == '2010':
-        poverty_by_numprec_dict = {1: 11720,
-                    2:  14937,
+    poverty_by_numprec_dicts = {}
+    poverty_by_numprec_dicts['2010'] = {
+                    1: 11720,
+                    2: 14937,
                     3: 18284,
                     4: 23492,
                     5: 27827,
                     6: 31471,
                     7: 35743}
-    if year == '2020':
-        poverty_by_numprec_dict = {1: 14880,
-                    2:  18900,
+    poverty_by_numprec_dicts['2020'] = {
+                    1: 14880,
+                    2: 18900,
                     3: 23280,
                     4: 29950,
                     5: 35510,
                     6: 40160,
                     7: 45690}
+
+    print(f"Adding poverty for year {year}")
+    poverty_by_numprec_dict = poverty_by_numprec_dicts[year]
+    print(f"Poverty by numprec dict: {poverty_by_numprec_dict}")
 
     for numprec in poverty_by_numprec_dict:
         randincome_less_than    = (output_df['randincomeB19101'] < \
@@ -138,7 +147,7 @@ def add_poverty(input_df, year: str = '2010'):
         conditions = randincome_greater_than & numprec_equals
         output_df.loc[conditions,'poverty'] = 0
 
-    # Add 0 hhinc - for no income group
+    # Add missing values for no observations with no income
     randincome_missing =  (output_df['randincomeB19101'].isnull())
     is_gqtype  = (output_df['gqtype'] > 0)
     is_vacant  = (output_df['vacancy'] > 0)

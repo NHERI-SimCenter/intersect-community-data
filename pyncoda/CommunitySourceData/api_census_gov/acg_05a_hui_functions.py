@@ -114,27 +114,27 @@ class hui_workflow_functions():
         new_char_dictionaries['hhinc'] = {}
         new_char_dictionaries['hhinc_family'] = {}
 
-        mutually_exclusive_varstems_roots_dictionary_lists[2010] = [tenure_size_H16_varstem_roots,
+        mutually_exclusive_varstems_roots_dictionary_lists['2010'] = [tenure_size_H16_varstem_roots,
                                                             vacancy_status_H5_varstem_roots,
                                                             group_quarters_P42_varstem_roots]
 
-        new_char_dictionaries['family'][2010] = [family_byrace_P18_varstem_roots]
-        new_char_dictionaries['Hispanic'][2010] = [tenure_size_H16HAI_varstem_roots,
+        new_char_dictionaries['family']['2010'] = [family_byrace_P18_varstem_roots]
+        new_char_dictionaries['Hispanic']['2010'] = [tenure_size_H16HAI_varstem_roots,
                                                 hispan_byrace_H7_varstem_roots,
                                                 tenure_byhispan_H15_varstem_roots]
-        new_char_dictionaries['hhinc'][2010] = [hhinc_varstem_roots]
-        new_char_dictionaries['hhinc_family'][2010] = [family_varstem_roots]
+        new_char_dictionaries['hhinc']['2010'] = [hhinc_varstem_roots]
+        new_char_dictionaries['hhinc_family']['2010'] = [family_varstem_roots]
 
-        mutually_exclusive_varstems_roots_dictionary_lists[2020] = [tenure_size_H12_2020_varstem_roots,
+        mutually_exclusive_varstems_roots_dictionary_lists['2020'] = [tenure_size_H12_2020_varstem_roots,
                                                     vacancy_status_H5_2020_varstem_roots,
                                                     group_quarters_P18_2020_varstem_roots]
 
-        new_char_dictionaries['family'][2020] = [family_byrace_P16_2020_varstem_roots]
-        new_char_dictionaries['Hispanic'][2020] = [tenure_size_H12HAI_2020_varstem_roots,
+        new_char_dictionaries['family']['2020'] = [family_byrace_P16_2020_varstem_roots]
+        new_char_dictionaries['Hispanic']['2020'] = [tenure_size_H12HAI_2020_varstem_roots,
                                                 hispan_byrace_H7_2020_varstem_roots,
                                                 tenure_byhispan_H11_2020_varstem_roots]
-        new_char_dictionaries['hhinc'][2020] = [hhinc_B19001_varstem_roots_2022]
-        new_char_dictionaries['hhinc_family'][2020] = [hhincfamily_B19101_varstem_roots_2022]
+        new_char_dictionaries['hhinc']['2020'] = [hhinc_B19001_varstem_roots_2022]
+        new_char_dictionaries['hhinc_family']['2020'] = [hhincfamily_B19101_varstem_roots_2022]
 
         print("\n***************************************")
         print("    Obtain and clean core housing unit characteristics for",self.state_county_name)
@@ -171,7 +171,7 @@ class hui_workflow_functions():
         # Generate Household Income Inventory - By Race
         tract_df["B19001"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'tract',
-                                        vintage = str(self.basevintage+2), 
+                                        vintage = str(int(self.basevintage)+2), 
                                         mutually_exclusive_varstems_roots_dictionaries =
                                                             new_char_dictionaries['hhinc'][self.basevintage],
                                         outputfolders = self.outputfolders,
@@ -180,7 +180,7 @@ class hui_workflow_functions():
         # Generate Family Income Inventory - By Race 
         tract_df["B19101"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'tract',
-                                        vintage = str(self.basevintage+2), 
+                                        vintage = str(int(self.basevintage)+2), 
                                         mutually_exclusive_varstems_roots_dictionaries =
                                                             new_char_dictionaries['hhinc_family'][self.basevintage] ,
                                         outputfolders = self.outputfolders,
