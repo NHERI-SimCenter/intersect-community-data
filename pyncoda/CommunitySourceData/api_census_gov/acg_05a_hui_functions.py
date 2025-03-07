@@ -264,8 +264,8 @@ class hui_workflow_functions():
         try:
             print("Add random income.")
             output_df = add_randincome(output_df,self.seed)
-            print("Add poverty.")
-            output_df = add_poverty(output_df)
+            print(f"Add poverty using {self.basevintage}.")
+            output_df = add_poverty(output_df, self.basevintage)
             print("Make category 0 for numprec, vacancy and gqtype")  
             output_df = fill_missingvalues(output_df)
             print("Drop extra columns.")                                                                  

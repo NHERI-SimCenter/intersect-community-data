@@ -88,24 +88,43 @@ def add_randincome(df, seed):
     return output_df
 
 
-def add_poverty(input_df):
+def add_poverty(input_df, year: str = '2010'):
     """
     Add poverty based on US Census Poverty Thresholds
     https://www.census.gov/topics/income-poverty/poverty/guidance/poverty-measures.html
     https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-poverty-thresholds/thresh12.xls
 
+    
+    Updated links - 2025-03-07
+    https://www.census.gov/data/tables/time-series/demo/income-poverty/historical-poverty-thresholds.html
+    https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-poverty-thresholds/thresh12.xlsx
+    https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-poverty-thresholds/thresh22.xlsx
+
+
     Use weighted average threshold by household size
+
+    Note that the income data is from 2012 or 2022 - therefore the poverty thresholds are from 2012 and 2022 
+    The year is for the base inventory - which is for the decennial census year.
     """
 
     output_df = input_df.copy()
 
-    poverty_by_numprec_dict = {1: 11720,
-                2:  14937,
-                3: 18284,
-                4: 23492,
-                5: 27827,
-                6: 31471,
-                7: 35743}
+    if year == '2010':
+        poverty_by_numprec_dict = {1: 11720,
+                    2:  14937,
+                    3: 18284,
+                    4: 23492,
+                    5: 27827,
+                    6: 31471,
+                    7: 35743}
+    if year == '2020':
+        poverty_by_numprec_dict = {1: 14880,
+                    2:  18900,
+                    3: 23280,
+                    4: 29950,
+                    5: 35510,
+                    6: 40160,
+                    7: 45690}
 
     for numprec in poverty_by_numprec_dict:
         randincome_less_than    = (output_df['randincomeB19101'] < \
@@ -132,6 +151,10 @@ def add_poverty(input_df):
 def add_hhinc_groups(input_df):
     """
     Add 5 income groups
+
+    Note these income groups were designed to match income groups
+    used by researchers at CSU for economic analysis.
+    Income groups may be used in some analysis in IN-CORE
     """
 
     output_df = input_df.copy()
