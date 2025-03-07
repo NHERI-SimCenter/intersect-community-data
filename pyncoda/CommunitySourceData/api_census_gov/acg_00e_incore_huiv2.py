@@ -307,7 +307,7 @@ def adjust_incore_datastructure_baseyear(baseyear):
             'pyType' : "category",
             'categorical' : True,
             'AnalysisUnit' : 'Household',
-            'MeasureUnit' : '2012 INFLATION-ADJUSTED DOLLARS',
+            'MeasureUnit' : '2012 or 2022 INFLATION-ADJUSTED DOLLARS',
             'categories_dict' : {
                 0 : '0. NA vacant or group quarters',
                 1 : '1. Less than $10,000',
