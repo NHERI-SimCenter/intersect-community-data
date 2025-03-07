@@ -115,11 +115,12 @@ def adjust_incore_datastructure_baseyear(baseyear):
             [   '1. Owned or being bought (loan)',
                 '2. Rented'],
             'notes' : '\n'.join([
-                '1. Based on 2010 Census SF1 Table H16. \n \n'
+                '1. Based on 2010 Census SF1 Table H16 or 2020 Census DHC Table H12. \n \n'
                 '2. Tenure status is not applicable for vacant not occupied housing units. \n \n'
                 '3. Tenure status is not applicable for group quarters. \n \n'
                 '4. To verify results compare table to: \n \n'
-                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H16.'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H16. \n \n'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.H12. \n \n'
                     ]),
             'primary_key' : 'huid',
             'pop_var' : 'numprec'},
@@ -166,9 +167,10 @@ def adjust_incore_datastructure_baseyear(baseyear):
                 '1. Race is based on the race of the householder. \n \n'
                 '2. Race of householder is not applicable for vacant not occupied housing units. \n \n'
                 '3. Race is missing for population living in group quarters. \n \n'
-                '4. Race is based on 2010 Census SF1 Tables H16 by race. \n \n'
+                '4. Race is based on 2010 Census SF1 Tables H16 or 2020 Census DHC Table H12 by race. \n \n'
                 '5. To verify results compare table to: \n \n'
-                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H6.'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H6. \n \n'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.H6. \n \n'
                 ]),
             'primary_key' : 'huid',
             'pop_var' : 'numprec'},
@@ -196,9 +198,11 @@ def adjust_incore_datastructure_baseyear(baseyear):
                 '2. Hispanic is missing for vacant not occupied housing units. \n \n'
                 '3. Hispanic is missing for population living in group quarters.\n \n'
                 '4. Hispanic is predicted based on 2010 Census SF1 Tables H7, H15, and H16. \n \n'
+                '4. Hispanic is predicted based on 2020 Census DHC Tables H7, H11, and H12. \n \n'
                 '5. Hispanic totals will not match the US Census data, but they should be close. \n \n'
                 '6. To verify results compare table to: \n \n'
-                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H7.'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H7. \n \n'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.H7.'
                 ]),
             'primary_key' : 'huid',
             'pop_var' : 'numprec'},
@@ -222,9 +226,10 @@ def adjust_incore_datastructure_baseyear(baseyear):
             [   'Nonfamily', 
                 'Family'],
             'notes' : '\n'.join([
-                '1. Family household is based on 2010 Census SF1 Tables P18 by race and ethnicity. \n \n'
+                '1. Family household is based on 2010 Census SF1 Table P18 and 2020 Census DHC P16 by race and ethnicity. \n \n'
                 '2. To verify results compare table to: \n \n'
-                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.P18.'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.P18. \n \n'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.P16.'
                 ]),
             'primary_key' : 'huid',
             'pop_var' : 'numprec'},
@@ -254,9 +259,10 @@ def adjust_incore_datastructure_baseyear(baseyear):
                 '6. For migrant workers',
                 '7. Other vacant'],
             'notes' : '\n'.join([
-                '1.  Based on 2010 Census SF1 Table H5. \n \n'
+                '1.  Based on 2010 Census SF1 Table H5 and 2020 Census DHC Table H5. \n \n'
                 '2. To verify results compare table to: \n \n'
-                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H5.'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H5. \n \n'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.H5.'
                 ]),
             'primary_key' : 'huid',
             'pop_var' : 'numprec'},
@@ -286,11 +292,12 @@ def adjust_incore_datastructure_baseyear(baseyear):
                 '6. Military quarters',
                 '7. Other noninstitutional facilities'],
             'notes' : '\n'.join([
-                '1. Based on 2010 Census SF1 Table P42. \n \n'
+                '1. Based on 2010 Census SF1 Table P42 and 2020 Census DHC Table P18. \n \n'
                 '2. Counts represent number of group quarters. '
                     'Sum by numprec to get population counts. \n \n'
                 '3. To verify results compare table to: \n \n'
-                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.P42.'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.P42.  \n \n'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.P18.'
                 ]),
             'primary_key' : 'huid',
             'pop_var' : 'numprec'},
@@ -338,7 +345,7 @@ def adjust_incore_datastructure_baseyear(baseyear):
                 '15. $150,000 to $199,999',
                 '16. $200,000 or more'],
             'notes' : '\n'.join([
-                '1. Based on 2012 5-year ACS tables B19001 and B19101. \n \n'
+                '1. Based on 2012 or 2022 5-year ACS tables B19001 and B19101. \n \n'
                 '2. This variable is designed to provide household income data that are comparable '
                 'to income distributions by race, Hispanic and families. '
                 'There are numerous assumptions associated with this variable. '
@@ -349,7 +356,8 @@ def adjust_incore_datastructure_baseyear(baseyear):
                 '4. Compare that the inventory counts fall within the ACS '
                 'the 90% CI (confidence interval) of the estimate. \n \n'
                 '5. To verify results compare table to: \n \n'
-                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B19001'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B19001 \n \n'
+                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2022.B19001'
                 ]),
             'primary_key' : 'huid',
             'pop_var' : 'numprec'},
@@ -375,7 +383,7 @@ def adjust_incore_datastructure_baseyear(baseyear):
                 '4. $75,000 to $99,999',
                 '5. $100,000 or more'],
             'notes' : '\n'.join([
-                    '1. Based on 2012 5-year ACS tables B19001 and B19101.  \n \n'
+                    '1. Based on 2012 or 2022 5-year ACS tables B19001 and B19101.  \n \n'
                     '2. Based on incomegroup variable - with 5 groups versus 16.'
                 ]),
             'primary_key' : 'huid',
@@ -389,12 +397,13 @@ def adjust_incore_datastructure_baseyear(baseyear):
             'MeasureUnit' : '2012 INFLATION-ADJUSTED DOLLARS',
             'notes' : '\n'.join([
                     '1.  Household income top coded at $250,000. \n \n'
-                    '2.  Based on 2012 5-year ACS tables B19001 and B19101. \n \n'
-                    '3.  Missing cases are vacant housing units or group quaters. '
+                    '2.  Based on 2012 or 2022 5-year ACS tables B19001 and B19101. \n \n'
+                    '3.  Missing cases are vacant housing units or group quarters. '
                     'The US Census does not collect income data for '
                     'populations living in group quarters.  \n \n'
                     '4.  To verify results compare median income to: \n \n'
-                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B19013'
+                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B19013 \n \n'
+                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2022.B19013 '
                     ])},
         'poverty' : 
             {   'label' : 'Poverty Status',
@@ -413,12 +422,14 @@ def adjust_incore_datastructure_baseyear(baseyear):
                 [   'Above poverty', 
                     'Below poverty'],
                 'notes' : '\n'.join([
-                    '1. Based on 2012 US Census Poverty Thresholds  \n \n',
-                    'https://www.census.gov/topics/income-poverty/poverty/guidance/poverty-measures.html  \n \n',
-                    'https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-poverty-thresholds/thresh12.xls  \n \n',
+                    '1. Based on 2012 or 2022 US Census Poverty Thresholds  \n \n',
+                    'https://www.census.gov/data/tables/time-series/demo/income-poverty/historical-poverty-thresholds.html  \n \n',
+                    'https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-poverty-thresholds/thresh12.xlsx  \n \n',
+                    'https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-poverty-thresholds/thresh22.xlsx  \n \n',
                     '2. Based on household size and random income, assuming random income represents household income in the past 12 months.  \n \n',
                     '3. To verify results compare table to: \n \n'
-                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B17019'
+                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B17021  \n \n'
+                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2022.B17021'
                     ]),
                 'primary_key' : 'huid',
                 'pop_var' : 'numprec'}
