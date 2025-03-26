@@ -139,7 +139,13 @@ class generate_addpt_functions():
         # Check if file exists
         if os.path.exists(savefile):
             print("File already exists: "+savefile)
-            census_block_place_puma_df = pd.read_csv(savefile)
+            census_block_place_puma_df = pd.read_csv(savefile,
+                                                    low_memory=False, 
+                                                    dtype={f'BLOCKID{yr}':str,
+                                                           f'STATEFP{yr}':str,
+                                                           f'GEOID{yr}':str,
+                                                           f'placeGEOID{yr}':str,
+                                                           f'pumaGEOID{yr}':str})
 
             # Convert df to gdf
             census_block_place_puma_gdf = df2gdf_WKTgeometry(df = census_block_place_puma_df, 
@@ -748,7 +754,10 @@ class generate_addpt_functions():
         Now that the data frame is a regular data frame can use geometry columns as string to fix the issue.
         '''
         ## read in the address point inventory csv file
-        address_point_df = pd.read_csv(csv_filepath, low_memory=False)
+        # make sure that blockid and placeGEOID10 are strings
+        address_point_df = pd.read_csv(csv_filepath, 
+                                       low_memory=False, 
+                                       dtype={f'blockid':str,f'placeGEOID{yr}':str})
 
         # Set Address Point Geometry
         # The default geometry is the building representative point
@@ -756,7 +765,7 @@ class generate_addpt_functions():
         # When the building representative point is missing use the Census Block Representative Point
         address_point_df.loc[(address_point_df['geometry'].isnull()),'geometry'] = address_point_df[f'rppnt{yr}4269']
 
-        # Convert Data Frame to Geodataframe
+        # Convert Data Frame to Geodataframe 
         address_point_gdf = gpd.GeoDataFrame(address_point_df)
 
         address_point_gdf['geometry'] = address_point_gdf['geometry'].apply(lambda x: loads(x))
