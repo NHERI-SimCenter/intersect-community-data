@@ -224,7 +224,7 @@ communities_dictionary = {
                     }
                 },
     'SETXUIFL_TX_NSI' : {
-                'community_name' : 'Southeast Texas Urban Integrated Field Lab (5 counties)',
+                'community_name' : 'Southeast Texas Urban Integrated Field Lab',
                 'focalplace_name' : 'Beaumont',
                 'STATE' : 'TEXAS',
                 'years' : ['2010'],
@@ -246,29 +246,24 @@ communities_dictionary = {
                     'building_area_cutoff' : 300
                 }
             },
-    'SETXUIFL_TX_NSI_Plus' : {
-                'community_name' : 'Southeast Texas Urban Integrated Field Lab (17 counties)',
-                'focalplace_name' : 'Beaumont',
+    'SETXUIFL_TX_NSI_Neighbors' : {
+                'community_name' : 'Southeast Texas Urban Integrated Field Lab (12 neighbor counties)',
+                'focalplace_name' : 'Liberty',
                 'STATE' : 'TEXAS',
                 'years' : ['2010'],
                 'counties' : { 
-                    1 : {'FIPS Code' : '48245', 'Name' : 'Jefferson, TX'},
-                    2 : {'FIPS Code' : '48361', 'Name' : 'Orange, TX'},
-                    3 : {'FIPS Code' : '48199', 'Name' : 'Hardin, TX'},
-                    4 : {'FIPS Code' : '48241', 'Name' : 'Jasper, TX'},
-                    5 : {'FIPS Code' : '48351', 'Name' : 'Newton, TX'},
-                    6 : {'FIPS Code' : '48457', 'Name' : 'Tyler, TX'},
-                    7 : {'FIPS Code' : '22023', 'Name' : 'Cameron, LA'},
-                    8 : {'FIPS Code' : '22019', 'Name' : 'Calcasieu, LA'},
-                    9 : {'FIPS Code' : '22011', 'Name' : 'Beauregard, LA'},
-                    10 : {'FIPS Code' : '22115', 'Name' : 'Vernon, LA'},
-                    11 : {'FIPS Code' : '22085', 'Name' : 'Sabine, LA'},
-                    12 : {'FIPS Code' : '48403', 'Name' : 'Sabine, TX'},
-                    13 : {'FIPS Code' : '48405', 'Name' : 'San Augustine, LA'},
-                    14 : {'FIPS Code' : '48005', 'Name' : 'Angelina, LA'},
-                    15 : {'FIPS Code' : '48373', 'Name' : 'Polk, LA'},
-                    16 : {'FIPS Code' : '48291', 'Name' : 'Liberty, LA'},
-                    17 : {'FIPS Code' : '48071', 'Name' : 'Chambers, LA'},
+                    1 : {'FIPS Code' : '48457', 'Name' : 'Tyler, TX'},
+                    2 : {'FIPS Code' : '22023', 'Name' : 'Cameron, LA'},
+                    3 : {'FIPS Code' : '22019', 'Name' : 'Calcasieu, LA'},
+                    4 : {'FIPS Code' : '22011', 'Name' : 'Beauregard, LA'},
+                    5 : {'FIPS Code' : '22115', 'Name' : 'Vernon, LA'},
+                    6 : {'FIPS Code' : '22085', 'Name' : 'Sabine, LA'},
+                    7 : {'FIPS Code' : '48403', 'Name' : 'Sabine, TX'},
+                    8 : {'FIPS Code' : '48405', 'Name' : 'San Augustine, TX'},
+                    9 : {'FIPS Code' : '48005', 'Name' : 'Angelina, Tx'},
+                    10 : {'FIPS Code' : '48373', 'Name' : 'Polk, TX'},
+                    11 : {'FIPS Code' : '48291', 'Name' : 'Liberty, TX'},
+                    12 : {'FIPS Code' : '48071', 'Name' : 'Chambers, TX'},
                     },
                 'building_inventory' : { 
                     'use_incore' : False,
