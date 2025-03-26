@@ -92,6 +92,20 @@ class generate_hui_functions():
             os.mkdir(self.outputfolder)
 
 
+
+    def remove_decimal0(self, cell):
+        # code to remove decimal and 0 from cell
+        # code provided by Copilot
+        # replaces applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+        # fixes future warning
+        try:
+            # Check if the cell is a string and ends with '.0'
+            if isinstance(cell, str) and cell.endswith('.0'):
+                return int(float(cell))  # Convert to float first, then to int
+            return cell
+        except ValueError:
+            return cell  # Return the original value if conversion fails
+            
     def generate_hui_v2_for_incore(self):
         """
         Generate HUI data for IN-CORE
@@ -149,7 +163,7 @@ class generate_hui_functions():
                     hui_incore_df = \
                         generate_df.save_incore_version2(hui_df)
                     # Remove .0 from data
-                    hui_incore_df_fixed = hui_incore_df.applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+                    hui_incore_df_fixed = hui_incore_df.apply(lambda col: col.map(self.remove_decimal0))
 
                     return hui_incore_df_fixed
                                                     
@@ -167,7 +181,7 @@ class generate_hui_functions():
                                             ignore_index=True, axis=0)
 
             # Remove .0 from data
-            hui_incore_df_fixed = hui_incore_df.applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+            hui_incore_df_fixed = hui_incore_df.apply(lambda col: col.map(self.remove_decimal0))
 
             #Save results for community name
             # Output files

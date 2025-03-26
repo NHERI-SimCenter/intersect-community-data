@@ -84,8 +84,10 @@ def add_representative_point(polygon_gdf,
 
     test_crs = polygon_gdf.crs
     if test_crs == "epsg:4269":
+        print("EPSG 4269 is the current projection")
         epsg = 4269
     elif test_crs == "epsg:4326":
+        print("EPSG 4326 is the current projection")
         epsg = 4326
     else:
         # Ensure both points and polygons have the same CRS

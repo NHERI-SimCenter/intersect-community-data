@@ -121,6 +121,19 @@ class generate_addpt_functions():
         self.use_incore = use_incore
 
 
+    def remove_decimal0(self, cell):
+        # code to remove decimal and 0 from cell
+        # code provided by Copilot
+        # replaces applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+        # fixes future warning
+        try:
+            # Check if the cell is a string and ends with '.0'
+            if isinstance(cell, str) and cell.endswith('.0'):
+                return int(float(cell))  # Convert to float first, then to int
+            return cell
+        except ValueError:
+            return cell  # Return the original value if conversion fails
+        
     def obtain_census_block_place_puma_gdf(self, community, year):
         """
         Create one file that has the census block, place, and puma for each block
@@ -218,6 +231,7 @@ class generate_addpt_functions():
         savefile = os.path.join(os.getcwd(), csv_filepath)
         if os.path.exists(savefile):
             print("Housing Unit Estimate File already exists: "+savefile)
+            # all columns should read in correctly as strings or integers
             huesimate_df = pd.read_csv(savefile)
             return huesimate_df
 
@@ -235,13 +249,24 @@ class generate_addpt_functions():
         print("Number of observations dropped: ",no_geometry)
         self.bldg_inv_gdf = self.bldg_inv_gdf[self.bldg_inv_gdf.geometry.notnull()]
 
+        # check projection for building inventory
+        print("Building Inventory Projection: ",self.bldg_inv_gdf.crs)
+
+        # convert building CRS to 4269
+        print("Converting Building Inventory to EPSG 4269")
+        self.bldg_inv_gdf = self.bldg_inv_gdf.to_crs("epsg:4269")
+
         # add representative point to buildings
         bldg_inv_gdf_point = add_representative_point(self.bldg_inv_gdf,year=year)
+
+        # check projection for census block data
+        print("Census Block Projection: ",census_block_place_puma_gdf.crs)
+
         building_to_block_gdf = spatial_join_points_to_poly(
                     points_gdf = bldg_inv_gdf_point,
                     polygon_gdf = census_block_place_puma_gdf,
-                    point_var = f'rppnt{yr}4326',
-                    poly_var = f'blk{yr}4326',
+                    point_var = f'rppnt{yr}4269',
+                    poly_var = f'blk{yr}4269',
                     geolevel = geolevel,
                     join_column_list = join_column_list)
         
@@ -424,14 +449,18 @@ class generate_addpt_functions():
                     print("Could not upload file to INCORE")
                     print("dataset_id is set to the dataframe")
                     # Read in csv as dataframe
-                    address_point_df = pd.read_csv(csv_filepath, low_memory=False)
+                    address_point_df = pd.read_csv(csv_filepath, 
+                                                    low_memory=False, 
+                                                    dtype={f'blockid':str,f'placeGEOID{yr}':str,f'COUNTYFP{yr}':str})
                     return address_point_df
                 
                 return dataset_id_final
             else:
                 print("File already exists on local drive: "+savefile)
                 # Read in csv as dataframe
-                address_point_df = pd.read_csv(csv_filepath, low_memory=False)
+                address_point_df = pd.read_csv(csv_filepath, 
+                                                low_memory=False, 
+                                                dtype={f'blockid':str,f'placeGEOID{yr}':str,f'COUNTYFP{yr}':str})
                 return address_point_df
 
         """
@@ -757,7 +786,7 @@ class generate_addpt_functions():
         # make sure that blockid and placeGEOID10 are strings
         address_point_df = pd.read_csv(csv_filepath, 
                                        low_memory=False, 
-                                       dtype={f'blockid':str,f'placeGEOID{yr}':str})
+                                       dtype={f'blockid':str,f'placeGEOID{yr}':str,f'COUNTYFP{yr}':str})
 
         # Set Address Point Geometry
         # The default geometry is the building representative point
@@ -788,31 +817,40 @@ class generate_addpt_functions():
 
         # Set observations outside of the county to with filled in values
         condition1 = (address_point_gdf[f'COUNTYFP{yr}'].isna())
-        address_point_gdf.loc[condition1,f'COUNTYFP{yr}'] = 999
+        address_point_gdf.loc[condition1,f'COUNTYFP{yr}'] = '999'
         address_point_gdf.loc[condition1,f'placeNAME{yr}'] = "Outside County"
-        address_point_gdf.loc[condition1,'blockid'] = 999999999999999
+        address_point_gdf.loc[condition1,'blockid'] = '999999999999999'
         address_point_gdf.loc[condition1,f'BLOCKID{yr}_str'] = 'B999999999999999'
         # Check if placeGEOID{yr} is missing
         condition1 = (address_point_gdf[f'placeGEOID{yr}'].isna())
-        address_point_gdf.loc[condition1,f'placeGEOID{yr}'] = 9999999
+        address_point_gdf.loc[condition1,f'placeGEOID{yr}'] = '9999999'
 
         # Check if Block ID is missing with filled in values
         condition2 = (address_point_gdf['blockid'].isna())
-        address_point_gdf.loc[condition2,f'COUNTYFP{yr}'] = 999
+        address_point_gdf.loc[condition2,f'COUNTYFP{yr}'] = '999'
         address_point_gdf.loc[condition2,f'placeNAME{yr}'] = "No Block ID"
-        address_point_gdf.loc[condition2,'blockid'] = 999999999999999
+        address_point_gdf.loc[condition2,'blockid'] = '999999999999999'
         address_point_gdf.loc[condition2,f'BLOCKID{yr}_str'] = 'B999999999999999'
 
 
         # Remove .0 from data
-        address_point_gdfv2 = address_point_gdf.\
-            applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+        address_point_gdfv2 = address_point_gdf.apply(lambda col: col.map(self.remove_decimal0))
+
         
         # Check if blockid is 15 characters long and a string
-        varid_max = max(address_point_gdf.blockid)      
-        print("Longest Block ID:",varid_max)
-        varid_min = min(address_point_gdf.blockid)      
-        print("Shortest Block ID:",varid_max)
+        if not isinstance(address_point_gdfv2['blockid'][0], str):
+            print("Converting Block ID to string")
+            try:
+                address_point_gdfv2['blockid'] = address_point_gdfv2['blockid'].astype(str)
+            except:
+                print("Could not convert block id to string")
+        else:
+            print("Block ID is already a string")
+        # Check the length of the blockid
+        if address_point_gdfv2['blockid'].str.len().max() == 15:
+            print("Block ID is 15 characters long")
+        else:
+            print("Block ID is not 15 characters long")
 
         # drop columns not needed for analysis
         address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
