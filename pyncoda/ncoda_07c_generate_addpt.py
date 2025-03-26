@@ -750,6 +750,7 @@ class generate_addpt_functions():
         For these areas use the county information to label the place names as the County Name.
         '''
         condition1 = (address_point_inventory_cols_bldg_block[f'placeNAME{yr}'].isna())
+        print("Number of observations with missing placeNAME: ",address_point_inventory_cols_bldg_block[condition1].shape[0])
         address_point_inventory_cols_bldg_block.loc[
                         condition1, f'placeNAME{yr}'] = "Unincorporated"
 
@@ -792,11 +793,16 @@ class generate_addpt_functions():
         # The default geometry is the building representative point
         address_point_df['geometry'] = address_point_df['building_geometry']
         # When the building representative point is missing use the Census Block Representative Point
-        address_point_df.loc[(address_point_df['geometry'].isnull()),'geometry'] = address_point_df[f'rppnt{yr}4269']
+        condition1 = (address_point_df['geometry'].isnull())
+        print("Number of observations with missing geometry: ",address_point_df[condition1].shape[0])
+        address_point_df.loc[condition1,'geometry'] = address_point_df[f'rppnt{yr}4269']
 
         # Convert Data Frame to Geodataframe 
         address_point_gdf = gpd.GeoDataFrame(address_point_df)
 
+        # Convert Geometry to WKT
+        # What is the data type of the geometry column
+        print("Geometry Column Data Type: ",type(address_point_gdf['geometry'][0]))
         address_point_gdf['geometry'] = address_point_gdf['geometry'].apply(lambda x: loads(x))
 
         # Add X and Y variables
@@ -817,16 +823,19 @@ class generate_addpt_functions():
 
         # Set observations outside of the county to with filled in values
         condition1 = (address_point_gdf[f'COUNTYFP{yr}'].isna())
+        print("Number of observations outside of the county: ",address_point_gdf[condition1].shape[0])
         address_point_gdf.loc[condition1,f'COUNTYFP{yr}'] = '999'
         address_point_gdf.loc[condition1,f'placeNAME{yr}'] = "Outside County"
         address_point_gdf.loc[condition1,'blockid'] = '999999999999999'
         address_point_gdf.loc[condition1,f'BLOCKID{yr}_str'] = 'B999999999999999'
         # Check if placeGEOID{yr} is missing
         condition1 = (address_point_gdf[f'placeGEOID{yr}'].isna())
+        print("Number of observations with missing placeGEOID: ",address_point_gdf[condition1].shape[0])
         address_point_gdf.loc[condition1,f'placeGEOID{yr}'] = '9999999'
 
         # Check if Block ID is missing with filled in values
         condition2 = (address_point_gdf['blockid'].isna())
+        print("Number of observations with missing blockid: ",address_point_gdf[condition2].shape[0])
         address_point_gdf.loc[condition2,f'COUNTYFP{yr}'] = '999'
         address_point_gdf.loc[condition2,f'placeNAME{yr}'] = "No Block ID"
         address_point_gdf.loc[condition2,'blockid'] = '999999999999999'
@@ -853,8 +862,8 @@ class generate_addpt_functions():
             print("Block ID is not 15 characters long")
 
         # drop columns not needed for analysis
-        address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
-            axis=1, inplace=True)
+        #address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
+        #    axis=1, inplace=True)
         
         # Resave results for community name
         address_point_gdfv2.to_csv(savefile, index=False)
