@@ -477,28 +477,33 @@ class generate_addpt_functions():
         huesimate_df_cols = huesimate_df[select_cols].copy(deep=True)
 
         # Look at address point count by block
-        hui_blockid = 'blockid'
-        bldg_blockid = f'BLOCKID{yr}'
-        hua_block_counts = self.hui_df[[hui_blockid,'huid']].groupby(hui_blockid).agg('count')
+        blockid_str = f'BLOCKID{yr}_str'
+        # Housing unit inventory needs the block string variable
+        self.hui_df[blockid_str] = \
+                self.hui_df[f'blockid'].\
+                    apply(lambda x : "B"+str(int(x)).zfill(15))
+        
+        hua_block_counts = self.hui_df[[blockid_str,'huid']].groupby(blockid_str).agg('count')
         hua_block_counts.reset_index(inplace = True)
+        # rename columns to match census block data
         hua_block_counts = hua_block_counts.\
-            rename(columns={'huid': "tothupoints", hui_blockid : bldg_blockid })
+            rename(columns={'huid': "tothupoints"})
         # Sum tothupoints
         hua_apcount = hua_block_counts['tothupoints'].sum()
         print("Total number of expected housing unit address points in county:",hua_apcount)
 
-        # Check to make sure that bldg_blockid is a string in both dataframes
-        if not isinstance(census_blocks_df_cols[bldg_blockid][0], str):
+        # Check to make sure that bldg_blockid is a 15 character string in both dataframes
+        if not isinstance(census_blocks_df_cols[blockid_str][0], str):
             print("Converting Census Block Dataframe block id to string")
             try:
-                census_blocks_df_cols[bldg_blockid] = census_blocks_df_cols[bldg_blockid].astype(str)
+                census_blocks_df_cols[blockid_str] = census_blocks_df_cols[blockid_str].astype(str).zfill(15)
             except:
                 print("Could not convert block id to string")
                 return None
-        if not isinstance(hua_block_counts[bldg_blockid][0], str):
+        if not isinstance(hua_block_counts[blockid_str][0], str):
             print("Converting HU Block Counts Dataframe block id to string")
             try:
-                hua_block_counts[bldg_blockid] = hua_block_counts[bldg_blockid].astype(str)
+                hua_block_counts[blockid_str] = hua_block_counts[blockid_str].astype(str).zfill(15)
             except:
                 print("Could not convert block id to string")
                 return None
@@ -506,12 +511,15 @@ class generate_addpt_functions():
         # merge address point counts by block with building data
         census_blocks_df_cols = pd.merge(right = census_blocks_df_cols,
                         left = hua_block_counts,
-                        right_on = bldg_blockid,
-                        left_on =  bldg_blockid,
+                        right_on = blockid_str,
+                        left_on =  blockid_str,
                         how = 'outer')   
 
         # fill in missing tothupoints with 0 values
         census_blocks_df_cols['tothupoints'] = census_blocks_df_cols['tothupoints'].fillna(value=0)
+
+        # save a copy of the census block data to check error
+        census_blocks_df_cols.to_csv('census_blocks_df_cols.csv', index=False)
 
         ### Prepare Building Inventory to Expand Based on Housing Unit Estimate
         '''
@@ -586,12 +594,6 @@ class generate_addpt_functions():
                                         left_on=[f'blockBLOCKID{yr}_str','blockidcounter'], 
                                         right_on=[f'BLOCKID{yr}_str','blockidcounter'], how='outer')
 
-        # Error Checking
-        # Save files to check for errors
-        address_point_inventory.to_csv('address_point_inventory.csv', index=False)
-        census_blocks_df_cols_expand.to_csv('census_blocks_df_cols_expand.csv', index=False)
-        huesimate_df_cols_expand.to_csv('huesimate_df_cols_expand.csv', index=False)
-        
         '''
         # Check merge - examples were Building Id is missing
         displaycols = [self.bldg_uniqueid,f'BLOCKID{yr}']
@@ -604,8 +606,10 @@ class generate_addpt_functions():
         '''
 
         # Fix issue with missing blockid vs BLOCKID{yr}
-        address_point_inventory.loc[address_point_inventory[f'BLOCKID{yr}_str'].isna(),
-            f'BLOCKID{yr}_str'] = address_point_inventory[f'blockBLOCKID{yr}_str']
+        condition = (address_point_inventory[f'BLOCKID{yr}_str'].isna())
+        print("Number of observations with missing block id: ",condition.sum())
+        address_point_inventory.loc[condition,f'BLOCKID{yr}_str'] = \
+            address_point_inventory[f'blockBLOCKID{yr}_str']
 
         cols = [col for col in address_point_inventory]
         #### The Address Point ID is based on the building id first then the block id
@@ -614,11 +618,14 @@ class generate_addpt_functions():
         building but in cases where the building id is missing 
         then the address point is based on the Census Block ID.
         '''
-        address_point_inventory.loc[(address_point_inventory[self.bldg_uniqueid].isna()),
-            'strctid'] = address_point_inventory.\
+        condition = (address_point_inventory[self.bldg_uniqueid].isna())
+        print("Number of observations with missing building id: ",condition.sum())
+        address_point_inventory.loc[condition,'strctid'] = address_point_inventory.\
             apply(lambda x: "C"+ str(x[f'BLOCKID{yr}_str']).zfill(36), axis=1)
-        address_point_inventory.loc[(address_point_inventory[self.bldg_uniqueid].notna()),
-            'strctid'] = address_point_inventory.\
+        
+        condition = (address_point_inventory[self.bldg_uniqueid].notna())
+        print("Number of observations with building id: ",condition.sum())
+        address_point_inventory.loc[condition,'strctid'] = address_point_inventory.\
             apply(lambda x: "ST"+ str(x[self.bldg_uniqueid]).zfill(36), axis=1)
 
         # Sort Address Points by The first part of the address point 
