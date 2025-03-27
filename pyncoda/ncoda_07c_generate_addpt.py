@@ -586,6 +586,12 @@ class generate_addpt_functions():
                                         left_on=[f'blockBLOCKID{yr}_str','blockidcounter'], 
                                         right_on=[f'BLOCKID{yr}_str','blockidcounter'], how='outer')
 
+        # Error Checking
+        # Save files to check for errors
+        address_point_inventory.to_csv('address_point_inventory.csv', index=False)
+        census_blocks_df_cols_expand.to_csv('census_blocks_df_cols_expand.csv', index=False)
+        huesimate_df_cols_expand.to_csv('huesimate_df_cols_expand.csv', index=False)
+        
         '''
         # Check merge - examples were Building Id is missing
         displaycols = [self.bldg_uniqueid,f'BLOCKID{yr}']
