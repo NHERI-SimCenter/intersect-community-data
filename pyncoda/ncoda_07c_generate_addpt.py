@@ -518,9 +518,6 @@ class generate_addpt_functions():
         # fill in missing tothupoints with 0 values
         census_blocks_df_cols['tothupoints'] = census_blocks_df_cols['tothupoints'].fillna(value=0)
 
-        # save a copy of the census block data to check error
-        census_blocks_df_cols.to_csv('census_blocks_df_cols.csv', index=False)
-
         ### Prepare Building Inventory to Expand Based on Housing Unit Estimate
         '''
         For the address point inventory to work there needs to be 
