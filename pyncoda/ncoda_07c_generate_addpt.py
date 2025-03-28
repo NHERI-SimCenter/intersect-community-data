@@ -96,7 +96,7 @@ class generate_addpt_functions():
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
-            basevintage: str = 2010,
+            basevintage: str = '2010',
             outputfolder: str ="",
             savefiles: bool = True,
             use_incore: bool = True):
@@ -121,6 +121,19 @@ class generate_addpt_functions():
         self.use_incore = use_incore
 
 
+    def remove_decimal0(self, cell):
+        # code to remove decimal and 0 from cell
+        # code provided by Copilot
+        # replaces applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+        # fixes future warning
+        try:
+            # Check if the cell is a string and ends with '.0'
+            if isinstance(cell, str) and cell.endswith('.0'):
+                return int(float(cell))  # Convert to float first, then to int
+            return cell
+        except ValueError:
+            return cell  # Return the original value if conversion fails
+        
     def obtain_census_block_place_puma_gdf(self, community, year):
         """
         Create one file that has the census block, place, and puma for each block
@@ -139,13 +152,19 @@ class generate_addpt_functions():
         # Check if file exists
         if os.path.exists(savefile):
             print("File already exists: "+savefile)
-            census_block_place_puma_df = pd.read_csv(savefile)
+            census_block_place_puma_df = pd.read_csv(savefile,
+                                                    low_memory=False, 
+                                                    dtype={f'BLOCKID{yr}':str,
+                                                           f'STATEFP{yr}':str,
+                                                           f'GEOID{yr}':str,
+                                                           f'placeGEOID{yr}':str,
+                                                           f'pumaGEOID{yr}':str})
 
             # Convert df to gdf
             census_block_place_puma_gdf = df2gdf_WKTgeometry(df = census_block_place_puma_df, 
                         projection = "epsg:4269", 
                         reproject ="epsg:4269",
-                        geometryvar = 'blk104269')
+                        geometryvar = f'blk{yr}4269')
             return census_block_place_puma_gdf
             
         # Create empty container to store outputs for in-core
@@ -161,6 +180,20 @@ class generate_addpt_functions():
             # create output folders for hui data generation
             outputfolders = directory_design(state_county_name = community,
                                                 outputfolder = self.outputfolder)
+            
+            # Check if State FIPS code matches state name
+            # State FIPS code is the first two digits of the county FIPS code
+            state_fips = state_county[:2]
+            state_name_check = check_state_name(state_fips = state_fips)
+            # for URL state name is all caps and has _ for spaces
+            state_name_check_allcaps = state_name_check.upper().replace(" ","_")
+            if state_caps != state_name_check_allcaps:
+                print(f"State Name {state_caps} does not match State FIPS Code {state_fips}")
+                # update state name
+                print(f"Updating State Name to {state_name_check_allcaps}")
+                state_caps = state_name_check_allcaps
+            else:
+                print(f"State Name {state_caps} matches State FIPS Code {state_fips}")
 
             output_folder = outputfolders['CommunitySourceData']
             # Read in Census Block PUMA Place Data
@@ -198,6 +231,7 @@ class generate_addpt_functions():
         savefile = os.path.join(os.getcwd(), csv_filepath)
         if os.path.exists(savefile):
             print("Housing Unit Estimate File already exists: "+savefile)
+            # all columns should read in correctly as strings or integers
             huesimate_df = pd.read_csv(savefile)
             return huesimate_df
 
@@ -215,13 +249,24 @@ class generate_addpt_functions():
         print("Number of observations dropped: ",no_geometry)
         self.bldg_inv_gdf = self.bldg_inv_gdf[self.bldg_inv_gdf.geometry.notnull()]
 
+        # check projection for building inventory
+        print("Building Inventory Projection: ",self.bldg_inv_gdf.crs)
+
+        # convert building CRS to 4269
+        print("Converting Building Inventory to EPSG 4269")
+        self.bldg_inv_gdf = self.bldg_inv_gdf.to_crs("epsg:4269")
+
         # add representative point to buildings
         bldg_inv_gdf_point = add_representative_point(self.bldg_inv_gdf,year=year)
+
+        # check projection for census block data
+        print("Census Block Projection: ",census_block_place_puma_gdf.crs)
+
         building_to_block_gdf = spatial_join_points_to_poly(
                     points_gdf = bldg_inv_gdf_point,
                     polygon_gdf = census_block_place_puma_gdf,
-                    point_var = f'rppnt{yr}4326',
-                    poly_var = f'blk{yr}4326',
+                    point_var = f'rppnt{yr}4269',
+                    poly_var = f'blk{yr}4269',
                     geolevel = geolevel,
                     join_column_list = join_column_list)
         
@@ -295,7 +340,7 @@ class generate_addpt_functions():
         ## Upload Address Point Inventory to IN-CORE
         # Upload CSV file to IN-CORE and save dataset_id
         # note you have to put the correct dataType as well as format
-        addpt_description =  '\n'.join(["2010 Address Point Inventory v2.0.0 with required IN-CORE columns. " 
+        addpt_description =  '\n'.join([f"{self.basevintage} Address Point Inventory v2.0.0 with required IN-CORE columns. " 
                 "Compatible with pyincore v1.4. " 
                 "Unit of observation is address point. " 
                 "Each address point is associated with a building in the building inventory. "
@@ -346,6 +391,7 @@ class generate_addpt_functions():
 
         # set year
         year = str(self.year)
+        yr = year[2:4]
         
         # Set community
         community = self.community
@@ -403,14 +449,18 @@ class generate_addpt_functions():
                     print("Could not upload file to INCORE")
                     print("dataset_id is set to the dataframe")
                     # Read in csv as dataframe
-                    address_point_df = pd.read_csv(csv_filepath, low_memory=False)
+                    address_point_df = pd.read_csv(csv_filepath, 
+                                                    low_memory=False, 
+                                                    dtype={f'blockid':str,f'placeGEOID{yr}':str,f'COUNTYFP{yr}':str})
                     return address_point_df
                 
                 return dataset_id_final
             else:
                 print("File already exists on local drive: "+savefile)
                 # Read in csv as dataframe
-                address_point_df = pd.read_csv(csv_filepath, low_memory=False)
+                address_point_df = pd.read_csv(csv_filepath, 
+                                                low_memory=False, 
+                                                dtype={f'blockid':str,f'placeGEOID{yr}':str,f'COUNTYFP{yr}':str})
                 return address_point_df
 
         """
@@ -419,36 +469,41 @@ class generate_addpt_functions():
         """
 
         # Set up census block place puma gdf for merge
-        select_cols = ['BLOCKID10_str','BLOCKID10','geometry','rppnt104269']
+        select_cols = [f'BLOCKID{yr}_str',f'BLOCKID{yr}','geometry',f'rppnt{yr}4269']
         census_blocks_df_cols = census_block_place_puma_gdf[select_cols].copy(deep=True)
 
         # Set up housing unit estimate file for merge
-        select_cols = [self.bldg_uniqueid,'blockBLOCKID10_str','huestimate']
+        select_cols = [self.bldg_uniqueid,f'blockBLOCKID{yr}_str','huestimate']
         huesimate_df_cols = huesimate_df[select_cols].copy(deep=True)
 
         # Look at address point count by block
-        hui_blockid = 'blockid'
-        bldg_blockid = 'BLOCKID10'
-        hua_block_counts = self.hui_df[[hui_blockid,'huid']].groupby(hui_blockid).agg('count')
+        blockid_str = f'BLOCKID{yr}_str'
+        # Housing unit inventory needs the block string variable
+        self.hui_df[blockid_str] = \
+                self.hui_df[f'blockid'].\
+                    apply(lambda x : "B"+str(int(x)).zfill(15))
+        
+        hua_block_counts = self.hui_df[[blockid_str,'huid']].groupby(blockid_str).agg('count')
         hua_block_counts.reset_index(inplace = True)
+        # rename columns to match census block data
         hua_block_counts = hua_block_counts.\
-            rename(columns={'huid': "tothupoints", hui_blockid : bldg_blockid })
+            rename(columns={'huid': "tothupoints"})
         # Sum tothupoints
         hua_apcount = hua_block_counts['tothupoints'].sum()
         print("Total number of expected housing unit address points in county:",hua_apcount)
 
-        # Check to make sure that bldg_blockid is a string in both dataframes
-        if not isinstance(census_blocks_df_cols[bldg_blockid][0], str):
+        # Check to make sure that bldg_blockid is a 15 character string in both dataframes
+        if not isinstance(census_blocks_df_cols[blockid_str][0], str):
             print("Converting Census Block Dataframe block id to string")
             try:
-                census_blocks_df_cols[bldg_blockid] = census_blocks_df_cols[bldg_blockid].astype(str)
+                census_blocks_df_cols[blockid_str] = census_blocks_df_cols[blockid_str].astype(str).zfill(15)
             except:
                 print("Could not convert block id to string")
                 return None
-        if not isinstance(hua_block_counts[bldg_blockid][0], str):
+        if not isinstance(hua_block_counts[blockid_str][0], str):
             print("Converting HU Block Counts Dataframe block id to string")
             try:
-                hua_block_counts[bldg_blockid] = hua_block_counts[bldg_blockid].astype(str)
+                hua_block_counts[blockid_str] = hua_block_counts[blockid_str].astype(str).zfill(15)
             except:
                 print("Could not convert block id to string")
                 return None
@@ -456,12 +511,15 @@ class generate_addpt_functions():
         # merge address point counts by block with building data
         census_blocks_df_cols = pd.merge(right = census_blocks_df_cols,
                         left = hua_block_counts,
-                        right_on = bldg_blockid,
-                        left_on =  bldg_blockid,
+                        right_on = blockid_str,
+                        left_on =  blockid_str,
                         how = 'outer')   
 
         # fill in missing tothupoints with 0 values
         census_blocks_df_cols['tothupoints'] = census_blocks_df_cols['tothupoints'].fillna(value=0)
+
+        # save a copy of the census block data to check error
+        census_blocks_df_cols.to_csv('census_blocks_df_cols.csv', index=False)
 
         ### Prepare Building Inventory to Expand Based on Housing Unit Estimate
         '''
@@ -511,7 +569,7 @@ class generate_addpt_functions():
         ## Merge Two Address Point Files
         '''
         Combing the address points based on building inventory and 
-        the address points based on the 2010 Census will create one file 
+        the address points based on the 2010 or 2020 Census will create one file 
         that has address points for the entire county.
 
         The combined file will show where the building inventory may 
@@ -523,33 +581,35 @@ class generate_addpt_functions():
         '''
         # Add counter by block id - use cumulative count method
         census_blocks_df_cols_expand['blockidcounter'] = \
-            census_blocks_df_cols_expand.groupby('BLOCKID10').cumcount()
+            census_blocks_df_cols_expand.groupby(f'BLOCKID{yr}').cumcount()
 
         # Add counter by block id - use cumulative count method
         huesimate_df_cols_expand['blockidcounter'] = \
-            huesimate_df_cols_expand.groupby('blockBLOCKID10_str').cumcount()
+            huesimate_df_cols_expand.groupby(f'blockBLOCKID{yr}_str').cumcount()
 
         # Merge 2 files based on blockid and blockid counter - 
         # keep all observations from both files with full outer join
         address_point_inventory = pd.merge(left = huesimate_df_cols_expand, 
                                         right = census_blocks_df_cols_expand,
-                                        left_on=['blockBLOCKID10_str','blockidcounter'], 
-                                        right_on=['BLOCKID10_str','blockidcounter'], how='outer')
+                                        left_on=[f'blockBLOCKID{yr}_str','blockidcounter'], 
+                                        right_on=[f'BLOCKID{yr}_str','blockidcounter'], how='outer')
 
         '''
         # Check merge - examples were Building Id is missing
-        displaycols = [self.bldg_uniqueid,'BLOCKID10']
+        displaycols = [self.bldg_uniqueid,f'BLOCKID{yr}']
         condition = address_point_inventory[self.bldg_uniqueid].isna()
         address_point_inventory[displaycols].loc[condition].head()
         # Check merge - examples were there is no census data
-        displaycols = [self.bldg_uniqueid,'BLOCKID10']
+        displaycols = [self.bldg_uniqueid,f'BLOCKID{yr}']
         condition = address_point_inventory['tothupoints'].isnull()
         address_point_inventory[displaycols].loc[condition].head()
         '''
 
-        # Fix issue with missing blockid vs BLOCKID10
-        address_point_inventory.loc[address_point_inventory.BLOCKID10_str.isna(),
-            'BLOCKID10_str'] = address_point_inventory['blockBLOCKID10_str']
+        # Fix issue with missing blockid vs BLOCKID{yr}
+        condition = (address_point_inventory[f'BLOCKID{yr}_str'].isna())
+        print("Number of observations with missing block id: ",condition.sum())
+        address_point_inventory.loc[condition,f'BLOCKID{yr}_str'] = \
+            address_point_inventory[f'blockBLOCKID{yr}_str']
 
         cols = [col for col in address_point_inventory]
         #### The Address Point ID is based on the building id first then the block id
@@ -558,11 +618,14 @@ class generate_addpt_functions():
         building but in cases where the building id is missing 
         then the address point is based on the Census Block ID.
         '''
-        address_point_inventory.loc[(address_point_inventory[self.bldg_uniqueid].isna()),
-            'strctid'] = address_point_inventory.\
-            apply(lambda x: "C"+ str(x['BLOCKID10_str']).zfill(36), axis=1)
-        address_point_inventory.loc[(address_point_inventory[self.bldg_uniqueid].notna()),
-            'strctid'] = address_point_inventory.\
+        condition = (address_point_inventory[self.bldg_uniqueid].isna())
+        print("Number of observations with missing building id: ",condition.sum())
+        address_point_inventory.loc[condition,'strctid'] = address_point_inventory.\
+            apply(lambda x: "C"+ str(x[f'BLOCKID{yr}_str']).zfill(36), axis=1)
+        
+        condition = (address_point_inventory[self.bldg_uniqueid].notna())
+        print("Number of observations with building id: ",condition.sum())
+        address_point_inventory.loc[condition,'strctid'] = address_point_inventory.\
             apply(lambda x: "ST"+ str(x[self.bldg_uniqueid]).zfill(36), axis=1)
 
         # Sort Address Points by The first part of the address point 
@@ -591,7 +654,7 @@ class generate_addpt_functions():
         address_point_inventory['flag_ap'] = 0
         address_point_inventory.loc[(address_point_inventory['tothupoints'].isnull()),'flag_ap'] = 1
         address_point_inventory.loc[(address_point_inventory[self.bldg_uniqueid].isna()),'flag_ap'] = 2
-        address_point_inventory.loc[(address_point_inventory['BLOCKID10_str'].isnull()),'flag_ap'] = 3
+        address_point_inventory.loc[(address_point_inventory[f'BLOCKID{yr}_str'].isnull()),'flag_ap'] = 3
         # Check to make sure expand variable was generated correctly
         address_point_inventory.groupby(['flag_ap']).count()
 
@@ -624,7 +687,7 @@ class generate_addpt_functions():
                                             right_on=[self.bldg_uniqueid], 
                                             how='left')
         # Rename geometry column to block geometry
-        address_point_inventory_geo.rename(columns={'geometry_x':'block10_geometry'}, inplace=True)
+        address_point_inventory_geo.rename(columns={'geometry_x':f'block{yr}_geometry'}, inplace=True)
 
         # Rename geometry column to building geometry
         address_point_inventory_geo.rename(columns={'geometry_y':'building_geometry'}, inplace=True)
@@ -654,10 +717,10 @@ class generate_addpt_functions():
         The address point county file has many columns but only a few are needed to 
         generate the address point inventory.
         '''
-        ## Create block id variable from substring of BLOCKID10_str
-        address_point_inventory_geo['blockid'] = address_point_inventory_geo['BLOCKID10_str'].str[1:16]
-        select_cols = ['addrptid','strctid',self.bldg_uniqueid,'blockid','BLOCKID10_str',
-            'building_geometry','block10_geometry','rppnt104269',
+        ## Create block id variable from substring of BLOCKID{yr}_str
+        address_point_inventory_geo['blockid'] = address_point_inventory_geo[f'BLOCKID{yr}_str'].str[1:16]
+        select_cols = ['addrptid','strctid',self.bldg_uniqueid,'blockid',f'BLOCKID{yr}_str',
+            'building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269',
             'huestimate','residential','bldgobs','flag_ap']
         address_point_inventory_cols = address_point_inventory_geo[select_cols].copy(deep=True)
 
@@ -682,30 +745,31 @@ class generate_addpt_functions():
                                         how='left')
 
         # For the merge only need a select number of columns
-        merge_cols = ['BLOCKID10_str','placeGEOID10','placeNAME10','COUNTYFP10']
+        merge_cols = [f'BLOCKID{yr}_str',f'placeGEOID{yr}',f'placeNAME{yr}',f'COUNTYFP{yr}']
         census_blocks_df_merge_cols = census_block_place_puma_gdf[merge_cols]
 
         # merge selected columns from building inventory to address point inventory
         address_point_inventory_cols_bldg_block = pd.merge(
                                         address_point_inventory_cols_bldg, 
                                         census_blocks_df_merge_cols,
-                                        left_on='BLOCKID10_str', 
-                                        right_on='BLOCKID10_str', 
+                                        left_on=f'BLOCKID{yr}_str', 
+                                        right_on=f'BLOCKID{yr}_str', 
                                         how='left')
 
-        # address_point_inventory_cols_bldg_block[['placeNAME10',self.bldg_uniqueid]].groupby(['placeNAME10']).count()
+        # address_point_inventory_cols_bldg_block[[f'placeNAME{yr}',self.bldg_uniqueid]].groupby([f'placeNAME{yr}']).count()
         ### Identify Unincorporated Areas with Place Name
         '''
         There are many address points that fall just outside of city limits in unincorporated places. 
         For these areas use the county information to label the place names as the County Name.
         '''
-        condition1 = (address_point_inventory_cols_bldg_block['placeNAME10'].isna())
+        condition1 = (address_point_inventory_cols_bldg_block[f'placeNAME{yr}'].isna())
+        print("Number of observations with missing placeNAME: ",address_point_inventory_cols_bldg_block[condition1].shape[0])
         address_point_inventory_cols_bldg_block.loc[
-                        condition1, 'placeNAME10'] = "Unincorporated"
+                        condition1, f'placeNAME{yr}'] = "Unincorporated"
 
         # Check new variable
-        #pd.crosstab(address_point_inventory_cols_bldg_block['placeNAME10'], 
-        #            address_point_inventory_cols_bldg_block['COUNTYFP10'], margins=True, margins_name="Total")
+        #pd.crosstab(address_point_inventory_cols_bldg_block[f'placeNAME{yr}'], 
+        #            address_point_inventory_cols_bldg_block[f'COUNTYFP{yr}'], margins=True, margins_name="Total")
 
 
         ### Save Work as CSV
@@ -713,7 +777,7 @@ class generate_addpt_functions():
         A CSV file with the Well Known Text (WKT) geometry provides flexibility for saving and working with files.
         '''
         # Move Foreign Key Columns Block ID State, County, Tract to first Columns
-        first_columns = ['addrptid',self.bldg_uniqueid,'strctid','blockid','placeGEOID10','placeNAME10','COUNTYFP10']
+        first_columns = ['addrptid',self.bldg_uniqueid,'strctid','blockid',f'placeGEOID{yr}',f'placeNAME{yr}',f'COUNTYFP{yr}']
         cols = first_columns + [col for col in address_point_inventory_cols_bldg_block if col not in first_columns]
         address_point_inventory_cols_bldg_block = address_point_inventory_cols_bldg_block[cols]
 
@@ -733,17 +797,25 @@ class generate_addpt_functions():
         Now that the data frame is a regular data frame can use geometry columns as string to fix the issue.
         '''
         ## read in the address point inventory csv file
-        address_point_df = pd.read_csv(csv_filepath, low_memory=False)
+        # make sure that blockid and placeGEOID10 are strings
+        address_point_df = pd.read_csv(csv_filepath, 
+                                       low_memory=False, 
+                                       dtype={f'blockid':str,f'placeGEOID{yr}':str,f'COUNTYFP{yr}':str})
 
         # Set Address Point Geometry
         # The default geometry is the building representative point
         address_point_df['geometry'] = address_point_df['building_geometry']
         # When the building representative point is missing use the Census Block Representative Point
-        address_point_df.loc[(address_point_df['geometry'].isnull()),'geometry'] = address_point_df['rppnt104269']
+        condition1 = (address_point_df['geometry'].isnull())
+        print("Number of observations with missing geometry: ",address_point_df[condition1].shape[0])
+        address_point_df.loc[condition1,'geometry'] = address_point_df[f'rppnt{yr}4269']
 
-        # Convert Data Frame to Geodataframe
+        # Convert Data Frame to Geodataframe 
         address_point_gdf = gpd.GeoDataFrame(address_point_df)
 
+        # Convert Geometry to WKT
+        # What is the data type of the geometry column
+        print("Geometry Column Data Type: ",type(address_point_gdf['geometry'][0]))
         address_point_gdf['geometry'] = address_point_gdf['geometry'].apply(lambda x: loads(x))
 
         # Add X and Y variables
@@ -763,36 +835,48 @@ class generate_addpt_functions():
         
 
         # Set observations outside of the county to with filled in values
-        condition1 = (address_point_gdf['COUNTYFP10'].isna())
-        address_point_gdf.loc[condition1,'COUNTYFP10'] = 999
-        address_point_gdf.loc[condition1,'placeNAME10'] = "Outside County"
-        address_point_gdf.loc[condition1,'blockid'] = 999999999999999
-        address_point_gdf.loc[condition1,'BLOCKID10_str'] = 'B999999999999999'
-        # Check if placeGEOID10 is missing
-        condition1 = (address_point_gdf['placeGEOID10'].isna())
-        address_point_gdf.loc[condition1,'placeGEOID10'] = 9999999
+        condition1 = (address_point_gdf[f'COUNTYFP{yr}'].isna())
+        print("Number of observations outside of the county: ",address_point_gdf[condition1].shape[0])
+        address_point_gdf.loc[condition1,f'COUNTYFP{yr}'] = '999'
+        address_point_gdf.loc[condition1,f'placeNAME{yr}'] = "Outside County"
+        address_point_gdf.loc[condition1,'blockid'] = '999999999999999'
+        address_point_gdf.loc[condition1,f'BLOCKID{yr}_str'] = 'B999999999999999'
+        # Check if placeGEOID{yr} is missing
+        condition1 = (address_point_gdf[f'placeGEOID{yr}'].isna())
+        print("Number of observations with missing placeGEOID: ",address_point_gdf[condition1].shape[0])
+        address_point_gdf.loc[condition1,f'placeGEOID{yr}'] = '9999999'
 
         # Check if Block ID is missing with filled in values
         condition2 = (address_point_gdf['blockid'].isna())
-        address_point_gdf.loc[condition2,'COUNTYFP10'] = 999
-        address_point_gdf.loc[condition2,'placeNAME10'] = "No Block ID"
-        address_point_gdf.loc[condition2,'blockid'] = 999999999999999
-        address_point_gdf.loc[condition2,'BLOCKID10_str'] = 'B999999999999999'
+        print("Number of observations with missing blockid: ",address_point_gdf[condition2].shape[0])
+        address_point_gdf.loc[condition2,f'COUNTYFP{yr}'] = '999'
+        address_point_gdf.loc[condition2,f'placeNAME{yr}'] = "No Block ID"
+        address_point_gdf.loc[condition2,'blockid'] = '999999999999999'
+        address_point_gdf.loc[condition2,f'BLOCKID{yr}_str'] = 'B999999999999999'
 
 
         # Remove .0 from data
-        address_point_gdfv2 = address_point_gdf.\
-            applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+        address_point_gdfv2 = address_point_gdf.apply(lambda col: col.map(self.remove_decimal0))
+
         
         # Check if blockid is 15 characters long and a string
-        varid_max = max(address_point_gdf.blockid)      
-        print("Longest Block ID:",varid_max)
-        varid_min = min(address_point_gdf.blockid)      
-        print("Shortest Block ID:",varid_max)
+        if not isinstance(address_point_gdfv2['blockid'][0], str):
+            print("Converting Block ID to string")
+            try:
+                address_point_gdfv2['blockid'] = address_point_gdfv2['blockid'].astype(str)
+            except:
+                print("Could not convert block id to string")
+        else:
+            print("Block ID is already a string")
+        # Check the length of the blockid
+        if address_point_gdfv2['blockid'].str.len().max() == 15:
+            print("Block ID is 15 characters long")
+        else:
+            print("Block ID is not 15 characters long")
 
         # drop columns not needed for analysis
-        address_point_gdfv2.drop(['geometry','building_geometry','block10_geometry','rppnt104269'], \
-            axis=1, inplace=True)
+        #address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
+        #    axis=1, inplace=True)
         
         # Resave results for community name
         address_point_gdfv2.to_csv(savefile, index=False)
