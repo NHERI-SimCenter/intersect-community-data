@@ -49,7 +49,7 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_05a_hui_functions \
     import hui_workflow_functions
 from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda.ncoda_04a_Figures import *
-from pyncoda.ncoda_06c_Codebook import *
+#from pyncoda.ncoda_06c_Codebook import *
 
 from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
     import incore_v2_DataStructure
@@ -179,6 +179,9 @@ class generate_hui_functions():
             # Save second set of files in common directory
             hui_incore_df_fixed.to_csv(common_directory+'.csv', index=False)
             
+            # skip the rest
+
+            """
             # Generate figures for explore data
             figures_list = []
             for by_var in ["race","hispan","family"]:
@@ -239,6 +242,7 @@ class generate_hui_functions():
                 "dataType": "incore:housingUnitInventory",
                 "format": "table"
                 }
+            """
 
             # If using IN-CORE
             if self.use_incore:

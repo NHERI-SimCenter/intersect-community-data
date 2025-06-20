@@ -152,7 +152,7 @@ def predict_residential_addresspoints(building_to_block_gdf,
                   'bldgcount1_sum','DiffCount1','ErrorCheck1_int']
 
     bldg_df_round2 = pd.merge(left = bldg_df, 
-                              right = census_blocks_df_rap1[keepcolumns], 
+                              right = [keepcolumns], 
                               left_on=bldg_blockid, 
                               right_on=bldg_blockid, 
                               how='left')

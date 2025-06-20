@@ -224,6 +224,8 @@ class generate_addpt_functions():
                     poly_var = f'blk{yr}4326',
                     geolevel = geolevel,
                     join_column_list = join_column_list)
+
+        display(building_to_block_gdf)
         
 
         # Housing unit inventory needs the block string variable

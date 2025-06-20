@@ -397,7 +397,7 @@ class BaseInventory():
         
         # save json as text file
         with open(json_filepath, 'w') as convert_file:
-            json.dump(apijson.json(),convert_file)
+            json.dump(apijson.json(),convert_file,indent=2)
 
         return df
 
@@ -415,6 +415,7 @@ class BaseInventory():
         for geo_level in geo_levels:
             # Each geolevel is a zero padded string
             len = geo_levels[geo_level]['len']
+            df[geo_level] = df[geo_level].astype(str)
             df.loc[:,geo_level] =  df[geo_level].apply(lambda x: str(x).zfill(len))
 
         df.loc[:,geolevel+year] = (df['state']+df['county'] +
@@ -533,7 +534,8 @@ class BaseInventory():
     def graft_on_new_char(base_inventory: pd.DataFrame,
                 state_county: str, 
                 new_char: str = 'hispan',
-                new_char_dictionaries: list = [tenure_size_H16HAI_varstem_roots,
+                new_char_dictionaries: list = [
+                    tenure_size_H16HAI_varstem_roots,
                     hispan_byrace_H7_varstem_roots,
                     tenure_byhispan_H15_varstem_roots
                     ],
@@ -687,11 +689,12 @@ class BaseInventory():
                 col_list = primary_key + char_vars + [new_countvar]
                 # find merge vars - merge vars are char vars that do not include new char column
                 merge_char_vars = [col for col in char_vars if col not in newchar_var]
+
             newchar_df[group] = newchar_df[group][col_list]
 
             # find merge vars - merge vars are char vars that do not include new char column
             merge_vars = primary_key+merge_char_vars
-            #print(merge_vars)
+            print("merge vars:",merge_vars)
 
             # create base cumulative count variable
             # Add Counter the dataframe to compare to expected units for the new characteristic
@@ -722,13 +725,15 @@ class BaseInventory():
             # add expected count of units by merge vars
             #print("Check before adding expected counts",group,newchar_varstem_roots['metadata']['concept'],"Split data for errors.")
             #print(expanded_hui_split['Not Set'].head())
-            expanded_hui_split['Not Set'] = pd.merge(left = expanded_hui_split['Not Set'],
+            expanded_hui_split['Not Set'] = pd.merge(
+                                left = expanded_hui_split['Not Set'],
                                 right = newchar_df_update_count,
                                 left_on = merge_vars,
                                 right_on = merge_vars,
                                 how = "outer")
             #print(expanded_hui_split['Not Set'].head(1))
             #print("\n\nShape of dataframe after merge:",expanded_hui_split['Not Set'].shape)
+
             # fill missing values for hucount
             expanded_hui_split['Not Set'][new_countvar] = expanded_hui_split['Not Set'][new_countvar].fillna(value = 0)
             
@@ -750,12 +755,14 @@ class BaseInventory():
             #print(merge_vars+[new_char+'_flagset'])
             #print("Check",newchar_varstem_roots['metadata']['concept'],"Split data for errors.")
             #print(expanded_hui_split['Not Set'].head())
-            expanded_hui_split['Not Set'] = BaseInventory.add_total_sum_byvar(df = expanded_hui_split['Not Set'],
+            expanded_hui_split['Not Set'] = BaseInventory.add_total_sum_byvar(
+                                                        df = expanded_hui_split['Not Set'],
                                                         values_to_sum = new_char,
                                                         by_vars = merge_vars+[new_char+'_flagset'],
                                                         values_to_sum_col_rename = 'sumby_'+newchar_var[0])
             #print("\n\nShape of dataframe after total sum:",expanded_hui_split['Not Set'].shape)
             #print("\n\nColumns after total sum:",expanded_hui_split['Not Set'].columns)
+
             # Add probability of new charactersistic
             numerator =  expanded_hui_split['Not Set'][new_countvar]
 
@@ -769,7 +776,6 @@ class BaseInventory():
             expanded_hui_split['Not Set'].loc[:,'prob_'+newchar_var[0]] = numerator / denominator
             # Replace probability with 0 if denominator = 0
             expanded_hui_split['Not Set'].loc[denominator == 0,'prob_'+newchar_var[0]] = 0
-
 
             # If probability == 1 & new char flag is not set then reset new characteristic to newchar value
             condition1 = (expanded_hui_split['Not Set']['prob_'+newchar_var[0]]==1) 
@@ -816,7 +822,6 @@ class BaseInventory():
                 sort_values(by='totalprob_'+new_char, ascending = False)
             expanded_hui_split['Not Set'].loc[:,base_counter_var] = \
                 expanded_hui_split['Not Set'].groupby(merge_vars+[new_char]).cumcount() + 1
-
 
         # Update Counts and check new char by counter
         for base_counter_var in base_counter_var_list:
@@ -888,9 +893,7 @@ class BaseInventory():
             expanded_hui_split[base_counter_var] = expanded_hui_split['Not Set'].\
                 loc[expanded_hui_split['Not Set'][new_char+'_flagset'] == 1]
             expanded_hui_split['Not Set'] = expanded_hui_split['Not Set'].\
-                loc[expanded_hui_split['Not Set'][new_char+'_flagset'] == 0]
-            
-            
+                loc[expanded_hui_split['Not Set'][new_char+'_flagset'] == 0]   
 
         #Recombine splits 
         # Remove dataframes with no length form dictionary before combining
@@ -904,7 +907,7 @@ class BaseInventory():
                 print(key, 'Has no observations')
         expanded_hui_recombine = pd.concat(expanded_hui_split.values(), 
                                 ignore_index=True, axis=0)
-        print("\n\nShape of dataframe after total sum:",expanded_hui_recombine.shape)
+        print("\n\nShape of dataframe after total sum:",expanded_hui_recombine.shape)         
 
         # After first round of setting new var use less than counters to update newvar
         # Running less than counter check first leads to over estimation of new char
@@ -953,6 +956,7 @@ class BaseInventory():
                         new_char: str = 'hispan',
                         new_countvar: str = 'precount_hispanbyP5',
                         skip_sets: list = ['Not Set']):
+
         """
         To predict new characteristic need to update the 
         count of the characteristic as it is predicted based
@@ -1012,7 +1016,7 @@ class BaseInventory():
             print("   Fix by vars :",by_vars)
 
         total_sum_df = pd.pivot_table(df, values=values_to_sum, index=by_vars,
-                                aggfunc=np.sum)
+                                aggfunc="sum")
         total_sum_df.reset_index(inplace = True)
         total_sum_df = total_sum_df.rename(columns = {values_to_sum : values_to_sum_col_rename})
 
