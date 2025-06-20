@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import pyncoda.ncoda_00d_cleanvarsutils as cleanvarsutils
+from pyncoda.ncoda_00d_cleanvarsutils import *
 
 
 '''
@@ -8,10 +8,10 @@ import pyncoda.ncoda_00d_cleanvarsutils as cleanvarsutils
 '''
 gqtype_valuelabels = {'categorical_variable': {'variable' : 'gqtype',
                             'variable_label' : 'Group Quarters Type',
-                            'notes' : '5 Household Income Groups based on random income.'},
+                            'notes' : ''},
                 'value_list' : {
                     0 : {'value': 0, 'value_label' : '0. NA (non-group quarters)'},
-                    1 : {'value': 1, 'value_label': "1 Correctional facilities for adults"},
+                    1 : {'value': 1, 'value_label': "1. Correctional facilities for adults"},
                     2 : {'value': 2, 'value_label': "2. Juvenile facilities"},
                     3 : {'value': 3, 'value_label': "3. Nursing facilities/Skilled-nursing facilities"},
                     4 : {'value': 4, 'value_label': "4. Other institutional facilities"},
@@ -38,8 +38,8 @@ hispan_valuelabels = {'categorical_variable': {'variable' : 'hispan',
                             'variable_label' : 'Hispanic',
                             'notes' : 'Hispanic Origin'},
                 'value_list' : {
-                    0 : {'value': 0, 'value_label' : '0 Not Hispanic or Latino'},
-                    1 : {'value': 1, 'value_label': '1 Hispanic or Latino'}}
+                    0 : {'value': 0, 'value_label' : '0. Not Hispanic or Latino'},
+                    1 : {'value': 1, 'value_label': '1. Hispanic or Latino'}}
                 }
 
 class PopResultsTable:
@@ -90,7 +90,7 @@ class PopResultsTable:
         # Ensure 'race' and 'hispan' columns are numeric for comparison
         df['race'] = pd.to_numeric(df['race'], errors='coerce')
         df['hispan'] = pd.to_numeric(df['hispan'], errors='coerce')
-        df['gqtype'] = pd.to_numeric(df['hispan'], errors='coerce')
+        df['gqtype'] = pd.to_numeric(df['gqtype'], errors='coerce')
 
         df['Race Ethnicity'] = "0 Vacant HU No Race Ethnicity Data"
         df['Race Ethnicity'].notes = "Identify Race and Ethnicity Housing Unit Characteristics."
@@ -341,14 +341,14 @@ class PopResultsTable:
             df = PopResultsTable.add_race_ethnicity_to_pop_df(df)
         if 'race' in current_col_list:
             #print("Add race labels")
-            df = cleanvarsutils.add_label_cat_values_df(df, valuelabels = race_valuelabels)
+            df = add_label_cat_values_df(df, valuelabels = race_valuelabels)
         if 'hispan' in current_col_list:
             #print("Add hispanic labels")
-            df = cleanvarsutils.add_label_cat_values_df(df, valuelabels = hispan_valuelabels)
+            df = add_label_cat_values_df(df, valuelabels = hispan_valuelabels)
         if 'ownershp' in current_col_list:
             df = PopResultsTable.add_tenure_to_pop_df(df)
         if 'vacancy' in current_col_list:
-            df = PopResultsTable.add_tenure_to_pop_df(df)
+            df = PopResultsTable.add_vacancy_to_pop_df(df)
         if all(col in current_col_list for col in ['guid', 'dislocated']):
             df = PopResultsTable.add_dislocates_pd_df(df)
         if 'jobtype' in current_col_list:
@@ -362,7 +362,7 @@ class PopResultsTable:
         if 'poverty' in current_col_list:
             df = PopResultsTable.add_poverty_df(df)
         if 'gqtype' in current_col_list:
-            df = cleanvarsutils.add_label_cat_values_df(df, valuelabels = gqtype_valuelabels)
+            df = add_label_cat_values_df(df, valuelabels = gqtype_valuelabels, variable = 'gqtype')
 
         #print("Set up who, what, when, where")
         if who == "Total Households":
@@ -496,7 +496,7 @@ hhinc_valuelabels = {'categorical_variable': {'variable' : 'hhinc',
                         5 : {'value': 5, 'value_label': "5 $100,000 or more"}}
                     }
 
-pd_df = cleanvarsutils.add_label_cat_values_df(pd_df, valuelabels = hhinc_valuelabels)
+pd_df = add_label_cat_values_df(pd_df, valuelabels = hhinc_valuelabels)
 
 ds3_conditions = {'cat_var' : {'variable_label' : 'Probability Complete Failure',
                          'notes' : 'Probability of complete failure based on damage state 3'},
@@ -518,6 +518,6 @@ dsf_valuelabels = {'categorical_variable' : {'variable' : 'd_sf',
                 1 : {'value': 0, 'value_label': "0 Not Single Family"},
                 2 : {'value': 1, 'value_label': "1 Single Family"}}
             }
-pd_df = cleanvarsutils.add_label_cat_conditions_df(pd_df, conditions = ds3_conditions)
-pd_df = cleanvarsutils.add_label_cat_values_df(pd_df, valuelabels = dsf_valuelabels)
+pd_df = add_label_cat_conditions_df(pd_df, conditions = ds3_conditions)
+pd_df = add_label_cat_values_df(pd_df, valuelabels = dsf_valuelabels)
 '''

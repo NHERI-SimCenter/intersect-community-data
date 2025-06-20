@@ -16,7 +16,7 @@ Rosenheim, Nathanael (2021) “Detailed Household and Housing Unit Characteristi
 Data and Replication Code.” DesignSafe-CI. 
 https://doi.org/10.17603/ds2-jwf6-s535.
 
-The 2010 Census Data provides detailed household and housing unit, 
+The 2010 or 2020 Census Data provides detailed household and housing unit, 
 level characteristics at the census block level. 
 
 The 2012 5-year American Community Survey provides detailed 
@@ -49,10 +49,10 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_05a_hui_functions \
     import hui_workflow_functions
 from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda.ncoda_04a_Figures import *
-#from pyncoda.ncoda_06c_Codebook import *
+from pyncoda.ncoda_06c_Codebook import *
 
 from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
-    import incore_v2_DataStructure
+    import *
 
 class generate_hui_functions():
     """
@@ -67,7 +67,7 @@ class generate_hui_functions():
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
-            basevintage: str = 2010,
+            basevintage: str = '2010',
             outputfolder: str ="",
             outputfolders = {},
             savefiles: bool = True,
@@ -92,6 +92,20 @@ class generate_hui_functions():
             os.mkdir(self.outputfolder)
 
 
+
+    def remove_decimal0(self, cell):
+        # code to remove decimal and 0 from cell
+        # code provided by Copilot
+        # replaces applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+        # fixes future warning
+        try:
+            # Check if the cell is a string and ends with '.0'
+            if isinstance(cell, str) and cell.endswith('.0'):
+                return int(float(cell))  # Convert to float first, then to int
+            return cell
+        except ValueError:
+            return cell  # Return the original value if conversion fails
+            
     def generate_hui_v2_for_incore(self):
         """
         Generate HUI data for IN-CORE
@@ -149,7 +163,7 @@ class generate_hui_functions():
                     hui_incore_df = \
                         generate_df.save_incore_version2(hui_df)
                     # Remove .0 from data
-                    hui_incore_df_fixed = hui_incore_df.applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+                    hui_incore_df_fixed = hui_incore_df.apply(lambda col: col.map(self.remove_decimal0))
 
                     return hui_incore_df_fixed
                                                     
@@ -167,7 +181,7 @@ class generate_hui_functions():
                                             ignore_index=True, axis=0)
 
             # Remove .0 from data
-            hui_incore_df_fixed = hui_incore_df.applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+            hui_incore_df_fixed = hui_incore_df.apply(lambda col: col.map(self.remove_decimal0))
 
             #Save results for community name
             # Output files
@@ -179,9 +193,9 @@ class generate_hui_functions():
             # Save second set of files in common directory
             hui_incore_df_fixed.to_csv(common_directory+'.csv', index=False)
             
-            # skip the rest
+            # create list of all required ergo:buildingInventoryVer6 columns
+            incore_v2_DataStructure = adjust_incore_datastructure_baseyear(self.basevintage)
 
-            """
             # Generate figures for explore data
             figures_list = []
             for by_var in ["race","hispan","family"]:
@@ -222,7 +236,7 @@ class generate_hui_functions():
 
             # Upload CSV file to IN-CORE and save dataset_id
             # note you have to put the correct dataType as well as format
-            hui_description =  '\n'.join(["2010 Housing Unit Inventory v2.0.0 with required IN-CORE columns. " 
+            hui_description =  '\n'.join([f"{self.basevintage} Housing Unit Inventory v2.0.0 with required IN-CORE columns. " 
                    "Compatible with pyincore v1.4. " 
                    "Unit of observation is housing unit. " 
                    "Detailed characteristics include number of persons, race, ethnicity, "
@@ -242,7 +256,6 @@ class generate_hui_functions():
                 "dataType": "incore:housingUnitInventory",
                 "format": "table"
                 }
-            """
 
             # If using IN-CORE
             if self.use_incore:

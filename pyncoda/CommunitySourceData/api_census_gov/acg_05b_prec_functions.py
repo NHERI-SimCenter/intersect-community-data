@@ -24,8 +24,6 @@ from pyncoda \
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_createAPI_datastructure import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00f_preci_block2010 import *
-from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
-    import incore_v2_DataStructure
 
 # open, read, and execute python program with reusable commands
 from pyncoda.CommunitySourceData.api_census_gov.acg_01a_BaseInventory import BaseInventory
@@ -48,7 +46,7 @@ class prec_workflow_functions():
             seed: int = 9876,
             version: str = '3.0.0',
             version_text: str = 'v3-0-0',
-            basevintage: str = 2010,
+            basevintage: str = '2010',
             outputfolder: str ="",
             outputfolders = {},
             savefiles: bool = True):

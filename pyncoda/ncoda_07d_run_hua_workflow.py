@@ -24,8 +24,6 @@ from pyncoda.ncoda_00e_geoutilities import *
 
 # Load in data structure dictionaries
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
-from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
-    import incore_v2_DataStructure
 
 # open, read, and execute python program with reusable commands
 from pyncoda.CommunitySourceData.api_census_gov.acg_02a_add_categorical_char \
@@ -49,7 +47,7 @@ class hua_workflow_functions():
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
-            basevintage: str = 2010,
+            basevintage: str = "2010",
             outputfolder: str ="",
             outputfolders = {},
             savefiles: bool = True,
@@ -231,6 +229,9 @@ class hua_workflow_functions():
         """
         Workflow to produce Housing Unit Allocation
         """
+        # year is the last two digits of the basevintage
+        yr = str(self.basevintage)[2:4]
+
         # Start empty containers to store hua data
         hua_df = {}
 
@@ -267,19 +268,19 @@ class hua_workflow_functions():
                         dfs = {'primary'  : {'data': hui_intersect_addpt_df, 
                                         'primarykey' : 'huid',
                                         'geolevel' : 'Housing Unit Inventory',
-                                        'geovintage' :'2010',
+                                        'geovintage' : f'{self.basevintage}',
                                         'notes' : 'Housing Unit records.'},
                         'secondary' : {'data': addpt_intersect_hui_df, 
                                         'primarykey' : 'addptid', # primary key needs to be different from new char
                                         'geolevel' : 'Address Point Inventory',
-                                        'geovintage' :'2010',
+                                        'geovintage' : f'{self.basevintage}',
                                         'notes' : 'Address Points for Possible Housing Units.'}},
                         seed = self.seed,
                         common_group_vars = [huicounter, ownershp],
                         new_char = 'strctid',
-                        extra_vars = ['addrptid',self.bldg_uniqueid,'huestimate','huicounter_addpt','placeNAME10','x','y'],
+                        extra_vars = ['addrptid',self.bldg_uniqueid,'huestimate','huicounter_addpt',f'placeNAME{yr}','x','y'],
                         geolevel = "Block",
-                        geovintage = "2010",
+                        geovintage = f'{self.basevintage}',
                         by_groups = {'NA' : {'by_variables' : []}},
                         fillna_value= '-999',
                         state_county = self.community,
@@ -321,19 +322,19 @@ class hua_workflow_functions():
                 dfs = {'primary'  : {'data': hui_intersect_addpt_df, 
                                 'primarykey' : 'huid',
                                 'geolevel' : 'Housing Unit Inventory',
-                                'geovintage' :'2010',
+                                'geovintage' :f'{self.basevintage}',
                                 'notes' : 'Housing Unit records.'},
                 'secondary' : {'data': addpt_intersect_hui_df, 
                                 'primarykey' : 'addptid', # primary key needs to be different from new char
                                 'geolevel' : 'Address Point Inventory',
-                                'geovintage' :'2010',
+                                'geovintage' :f'{self.basevintage}',
                                 'notes' : 'Address Points for Possible Housing Units.'}},
                 seed = self.seed,
                 common_group_vars = ['ownershp1'],
                 new_char = 'strctid',
-                extra_vars = ['addrptid',self.bldg_uniqueid,'huestimate','huicounter_addpt','placeNAME10','x','y'],
+                extra_vars = ['addrptid',self.bldg_uniqueid,'huestimate','huicounter_addpt',f'placeNAME{yr}','x','y'],
                 geolevel = "Block",
-                geovintage = "2010",
+                geovintage = f'{self.basevintage}',
                 by_groups = {'NA' : {'by_variables' : []}},
                 fillna_value= '-999',
                 state_county = self.community,
@@ -379,7 +380,7 @@ class hua_workflow_functions():
         ## Upload Housing Unit Allocation Inventory to IN-CORE
         # Upload CSV file to IN-CORE and save dataset_id
         # note you have to put the correct dataType as well as format
-        hua_description =  '\n'.join(["2010 Housing Unit Allocation Results v2.0.0 with required IN-CORE columns. " 
+        hua_description =  '\n'.join([f"'{self.basevintage}' Housing Unit Allocation Results v2.0.0 with required IN-CORE columns. " 
                 "Compatible with pyincore v1.4. " 
                 "Unit of observation is housing unit. " 
                 "Each housing unit is associated with a building in the building inventory. "
@@ -478,10 +479,10 @@ class hua_workflow_functions():
         # drop geometry_x and geometry_y columns
         huav2_gdf.drop(columns=['geometry_x','geometry_y'], inplace=True)
 
-        # Convert Block2010 to string
+        # Convert Block to string
         # fill in missing values
-        huav2_gdf['Block2010'] = huav2_gdf['Block2010'].fillna(999999999999999)
-        huav2_gdf['Block2010'] = huav2_gdf['Block2010'].apply(lambda x : str(int(x)).zfill(15))
+        huav2_gdf[f'Block{self.basevintage}'] = huav2_gdf[f'Block{self.basevintage}'].fillna(999999999999999)
+        huav2_gdf[f'Block{self.basevintage}'] = huav2_gdf[f'Block{self.basevintage}'].apply(lambda x : str(int(x)).zfill(15))
 
         # Drop if geometry is null
         # Count how many obesrvations having missing geometry
