@@ -5,10 +5,22 @@ import os
 from pyncoda.ncoda_00e_geoutilities import *
 
 def read_in_zip_shapefile_data(geolevel, year, url_list):
-    # Read data from www2.census.gov 
+
+    import requests
+    # Read data from www2.census.gov
     census_url = url_list[geolevel][year]
-    print(f'Obtaining Census {geolevel} data from:',census_url)
-    gdf = gpd.read_file(census_url)
+    print(f'Original Census {geolevel} data URL:',census_url)
+    local_path = census_url.replace('https://www2.census.gov/geo/tiger/','CensusData/')
+    print(f'Local Census {geolevel} data path:',local_path)
+
+    # download a local copy to work around SSL certificate error with gpd on macOS
+    response = requests.get(census_url, verify=False)
+
+    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+    with open(local_path, 'wb') as f:
+        f.write(response.content)
+
+    gdf = gpd.read_file(local_path)
     
     return gdf
 
