@@ -55,6 +55,51 @@ Carbado, D. W., Crenshaw, K. W., Mays, V. M., & Tomlinson, B. (2013). INTERSECTI
 Jacobs, F. (2019). Black feminism and radical planning: New directions for disaster planning research. Planning Theory, 18(1), 24-39. https://doi.org/10.1177/14730952187632 
 
 
+# 
+
+
+- Examples in Urban Planning, Social Science, and Natural Hazards literature 
+1. 
+
+Boundary scale relevance assumes that areal unit boundaries align with vulnerability patterns, but administrative boundaries such as census tracts, census block groups, or zip codes rarely align perfectly with socially meaningful divisions or vulnerability patterns or what would accurately reflect a neighborhood or community. The MAUP demonstrates how changes in either the scale of aggregation or the specific delineation of areal units can significantly alter analytical results. Similarly, the Uncertain Geographic Context Problem occurs when the boundaries of analysis units do not match the causally relevant boundaries of the vulnerability phenomenon being studied (Kwan 2012). 
+
+
+# Ecological Fallacy and Modifiable Areal Unit Problem (MAUP)
+Access to person or household level data are often limited due to privacy concerns or that the data was only published by groups. Studies that want to predict the behaviors or outcomes of indivisible units (e.g. a person or a household) therefore depend on statistical correlations made with aggregated data to make inferences about the individuals of interest. Evidence that such studies must explicitly recognize the limitation of their assumptions are valid (Robinson 1950, Openshaw 1984). The technical term for this source of bias is Ecological Fallacy. Examples include the correlation between race and illiteracy which is inflated for aggregated data (Robinson 1950) and 
+
+When the data in question is linked with spatially defined regions (e.g. counties or census tracts) a compounding limitation is the Modifiable Areal Unit Problem (MAUP). MAUP occurs when changes in model scale or boundaries of analysis alter results (Fotheringham and Wong 1991; Fekete et al. 2009).
+
+Razzaghi Asl et al. (2025) provide evidence that household-level demographic data linked with parcel level structure data overcomes issues with both ecological fallacy and MAUP. Specifically, household-level analysis better captures how income, housing status, and renter status influence FEMA Individual Assistance distribution, whereas tract-level averages mask within-tract variation and household needs. 
+ 
+
+Razzaghi Asl et al. (2025) contextualize MAUP by citing evidence that results vary across spatial scales: parcel vs. block group (Sauer et al., 2023), block group vs. county (Hinojos et al., 2023), census block vs. coarser units (Messager et al., 2021; Tanir et al., 2021), and county vs. tract (Choi et al., 2025).
+
+## References for Ecological Fallacy and MAUP
+Choi, C.-Y., Y. Zhang, M. Hummel, and Q. Qian. 2025. Reassessing the economic impacts of Hurricane Harvey on Texas: A closer look with granular analyses. Natural Hazards 121 (5):5921–45. doi: 10.1007/s11069-024-07000-6.
+
+Fotheringham, A. S. and D. W. S. Wong (1991). "The Modifiable Areal Unit Problem in Multivariate Statistical Analysis." Environment and Planning A: Economy and Space 23(7): 1025-1044. DOI: https://doi.org/10.1068/a231025.
+
+Fekete, A., M. Damm and J. Birkmann (2009). "Scales as a challenge for vulnerability assessment." Natural Hazards 55(3): 729-747. DOI: https://doi.org/10.1007/s11069-009-9445-5.
+
+Hinojos, S., L. McPhillips, P. Stempel, and C. Grady. 2023. Social and environmental vulnerability to flooding: Investigating cross-scale hypotheses. Applied Geography 157:103017. doi: 10.1016/j.apgeog.2023.103017.
+
+Messager, M. L., A. K. Ettinger, M. Murphy-Williams, and P. S. Levin. 2021. Fine-scale assessment of inequities in inland flood vulnerability. Applied Geography
+133:102492. doi: 10.1016/j.apgeog.2021.102492.
+
+Openshaw, S. 1984. Ecological fallacies and the analysis of areal census data. Environment & Planning A 16 (1):17–31. doi: 10.1068/a160017.
+
+Razzaghi Asl, S., Drakes, O., Tate, E., Brody, S., Highfield, W., & Atoba, K. (2025). The influence of scale in modeling social vulnerability and disaster assistance. Annals of the American Association of Geographers. Advance online publication. https://doi.org/10.1080/24694452.2025.2549057
+
+Robinson, W. S. (1950). "Ecological Correlations and the Behavior of Individuals." American Sociological Review 15(3): 351-357. DOI: https://doi.org/10.2307/2087176.
+
+Sauer, J., A. Pallathadka, I. Ajibade, M. Berbés-Blázquez, H. Chang, E. M. Cook, N. B. Grimm, D. M. Iwaniec, R. Lloyd, and G. C. Post. 2023. Relating social, ecological,
+and technological vulnerability to future flood exposure at two spatial scales in four US cities. Sustainable Cities and Society 99:104880. doi: 10.1016/j.scs.2023.104880.
+
+Schmidtlein, M. C., R. C. Deutsch, W. W. Piegorsch and S. L. Cutter (2008). "A sensitivity analysis of the social vulnerability index." Risk Analysis 28(4): 1099-114. DOI: https://doi.org/10.1111/j.1539-6924.2008.01072.x.
+
+Tanir, T., S. J. Sumi, A. D. S. de Lima, G. D. A. Coelho,  S. Uzun, F. Cassalho, and C. M. Ferreira. 2021. Multiscale comparison of urban socio-economic vulnerability in the Washington, DC metropolitan region resulting from compound flooding. International Journal of Disaster Risk Reduction 61:102362. doi: 10.1016/j.ijdrr.2021.102362.
+
+Wakefield, J. and H. Lyons (2010). Spatial Aggregation and the Ecological Fallacy. Handbook of Spatial Statistics. A. E. Gelfand, P. Diggle, M. Fuentes and P. Guttorp, CRC Press, Taylor & Francis Group: 541-558. ISBN: 9780429136504.
 
 
 ## Household level Social Vulnerability intersect with Flood Models
