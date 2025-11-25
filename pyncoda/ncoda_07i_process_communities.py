@@ -149,9 +149,6 @@ class process_community_workflow():
             filtered_count = len(housing_unit_inv_df)
             print(f"Filtered housing unit inventory from {original_count} to {filtered_count} housing units")
 
-            # Save the filtered housing unit inventory for debugging
-            housing_unit_inv_df.to_csv('housing_unit_inventory_filtered.csv', index=False)
-
         # Export HUI if requested
         if self.export_hui_path is not None:
             print(f"Saving Housing Unit Inventory to: {self.export_hui_path}")
@@ -222,7 +219,10 @@ class process_community_workflow():
                                         ignore_index=True, axis=0)
 
         # Save the building inventory
-        bldg_inv_gdf.to_file('building_inventory.geojson', driver='GeoJSON')
+        bldg_inv_gdf.to_file(
+            os.path.join(self.outputfolder, 'building_inventory.geojson'),
+            driver='GeoJSON'
+        )
 
         return bldg_inv_gdf, bldg_inv_id, bldg_uniqueid
 

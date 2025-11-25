@@ -1,26 +1,25 @@
 import geopandas as gpd
 import pandas as pd
 import sys
+import io
 import os
+import requests
 from pyncoda.ncoda_00e_geoutilities import *
 
 def read_in_zip_shapefile_data(geolevel, year, url_list):
 
-    import requests
     # Read data from www2.census.gov
     census_url = url_list[geolevel][year]
     print(f'Original Census {geolevel} data URL:',census_url)
-    local_path = census_url.replace('https://www2.census.gov/geo/tiger/','CensusData/')
-    print(f'Local Census {geolevel} data path:',local_path)
 
-    # download a local copy to work around SSL certificate error with gpd on macOS
+    # Download census data to memory to work around SSL certificate error with gpd on macOS
     response = requests.get(census_url, verify=False)
+    response.raise_for_status()
 
-    os.makedirs(os.path.dirname(local_path), exist_ok=True)
-    with open(local_path, 'wb') as f:
-        f.write(response.content)
-
-    gdf = gpd.read_file(local_path)
+    # Wrap the downloaded bytes in an in-memory file-like object
+    with io.BytesIO(response.content) as zip_file_in_memory:
+        # Read directly from memory
+        gdf = gpd.read_file(zip_file_in_memory)
     
     return gdf
 
